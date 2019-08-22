@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 import * as fs from 'fs';
+import * as http from 'http';
 import * as moment from 'moment';
 import * as cron from 'node-cron';
 
@@ -82,10 +83,11 @@ async function main(): Promise<void> {
   const allNewItems = { ...njuskaloAdds, ...plaviAdds, ...indeksAds };
   const newItems = findNewItems(oldAds, allNewItems);
   logger.info(`found ${Object.keys(newItems).length} new adds`);
-  logger.info(JSON.stringify(newItems))
+  logger.info(JSON.stringify(newItems));
 
   await sendResultsEmail(newItems);
   fs.writeFileSync(config.adsFile, JSON.stringify({ ...oldAds, ...newItems }, null, 2));
+  fs.writeFileSync(config.newAdsFile, JSON.stringify({ newItems }, null, 2));
   logger.info('-------------------------------------');
 }
 
@@ -99,3 +101,23 @@ cron.schedule('*/5 * * * *', () => {
     return sendEmail(config.errorsReceiver, 'crawler executing issue', `<html><body><span>Something is wrong with input html. ${e.message}</span></body></html>`);
   });
 });
+
+logger.info(`Serving new ads json on port ${config.port}...`);
+
+http.createServer(function(request, response) {
+  response.writeHead(200, {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'X-Powered-By':'dreams'
+  });
+
+  fs.readFile(config.newAdsFile, function(err, content){
+    if (err !== null) {
+      response.write(JSON.stringify({}));
+    } else {
+      response.write(content)
+    }
+
+    response.end();
+  });
+}).listen(process.env.PORT || 80);
