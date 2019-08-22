@@ -2,6 +2,7 @@ require('dotenv').config();
 
 import * as fs from 'fs';
 import * as moment from 'moment';
+import * as cron from 'node-cron';
 
 import njuskalo from './sources/njuskalo';
 import plavi from './sources/plavi';
@@ -81,15 +82,20 @@ async function main(): Promise<void> {
   const allNewItems = { ...njuskaloAdds, ...plaviAdds, ...indeksAds };
   const newItems = findNewItems(oldAds, allNewItems);
   logger.info(`found ${Object.keys(newItems).length} new adds`);
+  logger.info(JSON.stringify(newItems))
 
   await sendResultsEmail(newItems);
   fs.writeFileSync(config.adsFile, JSON.stringify({ ...oldAds, ...newItems }, null, 2));
   logger.info('-------------------------------------');
 }
 
-main().then(() => {
-  logger.info('done');
-}).catch((e) => {
-  logger.info('error', e);
-  return sendEmail(config.errorsReceiver, 'crawler executing issue', `<html><body><span>Something is wrong with input html. ${e.message}</span></body></html>`);
+logger.info('Running every 5 minutes...');
+
+cron.schedule('*/5 * * * *', () => {
+  main().then(() => {
+    logger.info('done');
+  }).catch((e) => {
+    logger.info('error', e);
+    return sendEmail(config.errorsReceiver, 'crawler executing issue', `<html><body><span>Something is wrong with input html. ${e.message}</span></body></html>`);
+  });
 });
