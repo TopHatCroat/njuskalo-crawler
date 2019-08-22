@@ -6,10 +6,8 @@ function getEnvOrFail(ENV: string): string {
   return process.env[ENV];
 }
 
+const emailerApiKey = getEnvOrFail('SENDGRID_API_KEY');
 const emailFrom = getEnvOrFail('EMAIL_FROM');
-const emailTransport = getEnvOrFail('EMAIL_TRANSPORT');
-const emailAuthUsername = getEnvOrFail('EMAIL_AUTH_USERNAME');
-const emailAuthPassword = getEnvOrFail('EMAIL_AUTH_PASSWORD');
 const emailReceivers = getEnvOrFail('EMAIL_RECEIVERS').split(',');
 const errorsReceiver = getEnvOrFail('ERRORS_RECEIVER');
 const adsFile = getEnvOrFail('ADS_FILE');
@@ -21,11 +19,9 @@ const indexUrl = process.env.INDEX_URL;
 
 export const config = {
   emailFrom,
-  emailTransport,
-  emailAuthUsername,
-  emailAuthPassword,
   emailReceivers,
   errorsReceiver,
+  emailerApiKey,
   adsFile,
   notBeforeDateTime,
   njuskaloUrl,

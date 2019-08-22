@@ -1,21 +1,16 @@
-import * as nodemailer from 'nodemailer';
+const sgMail = require('@sendgrid/mail');
+
 import { config } from '../config';
 
-const transporter = nodemailer.createTransport({
-  service: config.emailTransport,
-  auth: {
-    user: config.emailAuthUsername,
-    pass: config.emailAuthPassword,
-  }
-});
+sgMail.setApiKey(config.emailerApiKey);
 
-export const sendEmail = async function send(receiver: string | string[], subject: string, html: string): Promise<nodemailer.SentMessageInfo> {
-  const mailOptions = {
-    from: config.emailFrom,
+export const sendEmail = async function send(receiver: string | string[], subject: string, html: string) {
+  const msg = {
     to: receiver,
+    from: config.emailFrom,
     subject,
     html,
   };
 
-  await transporter.sendMail(mailOptions);
+  await sgMail.sendMultiple(msg);
 }
