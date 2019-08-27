@@ -82,7 +82,7 @@ async function main(): Promise<void> {
   const allNewItems = { ...njuskaloAdds, ...plaviAdds, ...indeksAds };
   const newItems = findNewItems(oldAds, allNewItems);
   logger.info(`found ${Object.keys(newItems).length} new adds`);
-  logger.info(JSON.stringify(newItems))
+  logger.info(JSON.stringify(newItems));
 
   await sendResultsEmail(newItems);
   fs.writeFileSync(config.adsFile, JSON.stringify({ ...oldAds, ...newItems }, null, 2));
@@ -96,6 +96,6 @@ cron.schedule('*/5 * * * *', () => {
     logger.info('done');
   }).catch((e) => {
     logger.info('error', e);
-    return sendEmail(config.errorsReceiver, 'crawler executing issue', `<html><body><span>Something is wrong with input html. ${e.message}</span></body></html>`);
+    return sendEmail(config.errorsReceiver, 'crawler executing issue', `<html><body><span>Something is wrong with input html. ${JSON.stringify(e)}</span></body></html>`);
   });
 });
